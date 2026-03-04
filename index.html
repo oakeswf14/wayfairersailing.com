@@ -80,51 +80,72 @@
     </div>
 
     <script>
-      async function fetchWind() {
-        try {
-          const proxy = "https://api.allorigins.win/raw?url=";
-          const url = encodeURIComponent("https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt");
+  let hasValidWind = false; // track if we've ever shown valid data
 
-          console.log("Fetching:", url);
-          const response = await fetch(proxy + url);
+  async function fetchWind() {
+    const windDisplay = document.getElementById("wind-display");
 
-          console.log("Response status:", response.status);
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
+    try {
+      const proxy = "https://cors.isomorphic-git.org/";
+      const target = "https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt";
+      const url = proxy + target;
 
-          const text = await response.text();
-          console.log("First 5 lines of response:\n", text.split("\n").slice(0,5).join("\n"));
-          const lines = text.trim().split("\n");
-
-          // Skip header lines; then check first ~13 data lines for valid wind
-          const linesToCheck = lines.slice(2, 15);
-          console.log("Lines to check:", linesToCheck);
-          const firstValidLine = linesToCheck.find(line => {
-            const parts = line.trim().split(/\s+/);
-            console.log("Checking line parts:", parts);
-            // defensive: ensure indexes exist
-            return parts[5] && parts[6] && parts[5] !== "MM" && parts[6] !== "MM";
-          });
-
-          const windDisplay = document.getElementById("wind-display");
-
-          if (!firstValidLine) {
-            windDisplay.innerText = "Wind data unavailable";
-          } else {
-            const parts = firstValidLine.trim().split(/\s+/);
-            const windDir = parseFloat(parts[5]);
-            const windSpeed = parts[6];
-            windDisplay.innerText = `Wind: ${windSpeed} kt @ ${windDir}°`;
-          }
-        } catch (err) {
-          console.error(err);
-          document.getElementById("wind-display").innerText = "Wind data unavailable";
-        }
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Network error: " + response.status);
       }
 
-      fetchWind();
-      setInterval(fetchWind, 100000);
-    </script>
+      const text = await response.text();
+      const lines = text.trim().split("\n");
+
+      if (lines.length < 3) {
+        // Don't clear existing good data
+        if (!hasValidWind) {
+          windDisplay.innerText = "Wind data unavailable";
+        }
+        return;
+      }
+
+      const linesToCheck = lines.slice(2, 15);
+      const firstValidLine = linesToCheck.find(line => {
+        const parts = line.trim().split(/\s+/);
+        return parts.length > 6 &&
+               parts[5] !== "MM" &&
+               parts[6] !== "MM";
+      });
+
+      if (!firstValidLine) {
+        if (!hasValidWind) {
+          windDisplay.innerText = "Wind data unavailable";
+        }
+        return;
+      }
+
+      const parts = firstValidLine.trim().split(/\s+/);
+      const windDir = parseFloat(parts[5]);
+      const windSpeed = parts[6];
+
+      if (isNaN(windDir) || windSpeed === "MM") {
+        if (!hasValidWind) {
+          windDisplay.innerText = "Wind data unavailable";
+        }
+        return;
+      }
+
+      // At this point we have good data
+      hasValidWind = true;
+      windDisplay.innerText = `Wind: ${windSpeed} kt @ ${windDir}°`;
+    } catch (e) {
+      console.error("Error fetching wind:", e);
+      // Only show "unavailable" if we never had valid data
+      if (!hasValidWind) {
+        windDisplay.innerText = "Wind data unavailable";
+      }
+    }
+  }
+
+  fetchWind();                  // initial load
+  setInterval(fetchWind, 60000); // update every 60s 
+</script>
   </body>
 </html>
