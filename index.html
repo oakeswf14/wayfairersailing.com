@@ -78,9 +78,9 @@
 async function fetchWind() {
   try {
     const proxy = "https://api.allorigins.win/raw?url=";
-    const url = encodeURIComponent(proxy + "https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt");
+    const url = encodeURIComponent("https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt");
     //const url = "https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt";
-    const response = await fetch(url);
+    const response = await fetch(proxy+url);
     const text = await response.text();
     
     
