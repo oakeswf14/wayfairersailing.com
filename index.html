@@ -101,7 +101,7 @@
       if (lines.length < 3) {
         // Don't clear existing good data
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windDisplay.innerText = "Wind data unavailable1";
         }
         return;
       }
@@ -116,7 +116,7 @@
 
       if (!firstValidLine) {
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windDisplay.innerText = "Wind data unavailable2";
         }
         return;
       }
@@ -127,7 +127,7 @@
 
       if (isNaN(windDir) || windSpeed === "MM") {
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windDisplay.innerText = "Wind data unavailable3";
         }
         return;
       }
@@ -139,7 +139,7 @@
       console.error("Error fetching wind:", e);
       // Only show "unavailable" if we never had valid data
       if (!hasValidWind) {
-        windDisplay.innerText = "Wind data unavailable";
+        windDisplay.innerText = "Wind data unavailable full fail";
       }
     }
   }
