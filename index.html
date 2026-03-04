@@ -84,7 +84,7 @@ async function fetchWind() {
     const text = await response.text();
     const lines = text.trim().split("\n");
     
-    const linesToCheck = lines.slice(2,6);
+    const linesToCheck = lines.slice(2,15);
     const firstValidLine = linesToCheck.find(line => {
       const parts = line.trim().split(/\s+/);
       return parts[5] !== "MM" && parts[6] !== "MM";
