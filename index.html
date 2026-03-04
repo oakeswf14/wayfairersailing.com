@@ -85,8 +85,8 @@ async function fetchWind() {
     // NDBC standard columns for “real-time”:
     // lastLine[7] = wind direction (deg)
     // lastLine[8] = wind speed (m/s or kt depending on station)
-    const windDir = lastLine[7];
-    const windSpeed = lastLine[8];
+    const windDir = lastLine[5];
+    const windSpeed = lastLine[6];
     
     //const lastLine = lines[lines.length - 1].split(/\s+/);
 
