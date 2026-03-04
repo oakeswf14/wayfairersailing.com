@@ -82,12 +82,11 @@ async function fetchWind() {
     //const url = "https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt";
     const response = await fetch(proxy+url);
     const text = await response.text();
-    document.getElementById("wind-display").innerText = ${text};
     
     const lines = text.trim().split("\n");
     
     const dataLines = lines[2].trim().split(/\s+/);
-    
+    document.getElementById("wind-display").innerText = ${dataLines};
     const windDir = dataLine[5];
     const windSpeed = dataLine[6];
 
