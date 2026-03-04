@@ -3,36 +3,38 @@
   <head>
     <meta charset="UTF-8">
     <title>Wayfairer Sailing</title>
-    <meta name="viewport" content="width=device-width, initial-scale+1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       .topbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 80px;
-          background-color: white;
-          display: flex;
-          align-items: center;
-          padding: 0 20px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          z-index:1000;
-        }
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+      }
 
-        .topbar img{
-          height: 70px;
-          flex-shrink: 0;
-        }
+      .topbar img {
+        height: 70px;
+        flex-shrink: 0;
+      }
+
       #wind-display {
         display: flex;
-        align: center;
+        align-items: center; /* fixed */
         margin-left: 80px;
         font-size: 0.9rem;
         color: #333;
         white-space: nowrap;
       }
+
       body {
-        margin:0;
+        margin: 0;
         padding-top: 70px;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         color: #111;
@@ -41,22 +43,24 @@
         align-items: center;
         height: 100vh;
         text-align: center;
-
         background-image: url("images/Boat9.jpg");
         background-size: cover;
-        background-position:center;
+        background-position: center;
         background-repeat: no-repeat;
       }
+
       .logo {
-          position: absolute;
-          top: 5px;
-          left: 5px;
-          width: 70px;
-        }
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: 70px;
+      }
+
       h1 {
         font-size: 3rem;
         margin-bottom: 0.5rem;
       }
+
       p {
         font-size: 1.2rem;
         color: #555;
@@ -65,50 +69,56 @@
   </head>
   <body>
     <div class="topbar">
-    <img src="images/wayfairer_logo1.png" class="logo" alt="Logo">
-        <div id="wind-display">
-          Loading wind...
-        </div>
+      <img src="images/wayfairer_logo1.png" class="logo" alt="Logo">
+      <div id="wind-display">
+        Loading wind...
+      </div>
     </div>
     <div>
       <h1>Wayfairer</h1>
       <p>Lets Go Sailing</p>
     </div>
+
     <script>
-async function fetchWind() {
-  try {
-    const proxy = "https://api.allorigins.win/raw?url=";
-    const url = encodeURIComponent("https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt");
-    //const url = "https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt";
-    const response = await fetch(proxy+url);
-    const text = await response.text();
-    const lines = text.trim().split("\n");
-    
-    const linesToCheck = lines.slice(2,15);
-    const firstValidLine = linesToCheck.find(line => {
-      const parts = line.trim().split(/\s+/);
-      return parts[5] !== "MM" && parts[6] !== "MM";
-  })
+      async function fetchWind() {
+        try {
+          const proxy = "https://api.allorigins.win/raw?url=";
+          const url = encodeURIComponent("https://www.ndbc.noaa.gov/data/realtime2/CHII2.txt");
 
-    if (!firstValidLine) {
-      document.getElementById("wind-display").innerText = "Wind data unavailable";
-    } else {
-      const parts = firstValidLine.trim().split(/\s+/);
-      const windDir = parseFloat(parts[5]);
-      const windSpeed = parts[6];
-      document.getElementById("wind-display").innerText =
-      Wind: ${windSpeed} kt @ ${windDir}°`;
+          const response = await fetch(proxy + url);
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+
+          const text = await response.text();
+          const lines = text.trim().split("\n");
+
+          // Skip header lines; then check first ~13 data lines for valid wind
+          const linesToCheck = lines.slice(2, 15);
+          const firstValidLine = linesToCheck.find(line => {
+            const parts = line.trim().split(/\s+/);
+            // defensive: ensure indexes exist
+            return parts[5] && parts[6] && parts[5] !== "MM" && parts[6] !== "MM";
+          });
+
+          const windDisplay = document.getElementById("wind-display");
+
+          if (!firstValidLine) {
+            windDisplay.innerText = "Wind data unavailable";
+          } else {
+            const parts = firstValidLine.trim().split(/\s+/);
+            const windDir = parseFloat(parts[5]);
+            const windSpeed = parts[6];
+            windDisplay.innerText = `Wind: ${windSpeed} kt @ ${windDir}°`;
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById("wind-display").innerText = "Wind data unavailable";
+        }
       }
-  } catch (err) {
-    console.error(err);
-    document.getElementById("wind-display").innerText = "Wind data unavailable";
-  }
-}
 
-fetchWind();
-setInterval(fetchWind, 100000);
-      
-</script>
-
+      fetchWind();
+      setInterval(fetchWind, 100000);
+    </script>
   </body>
 </html>
