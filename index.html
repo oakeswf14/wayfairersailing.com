@@ -33,6 +33,17 @@
         white-space: nowrap;
       }
 
+      #wind-arrow {
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 16px solid #333; /* arrow color */
+        margin-right: 8px;
+        transition: transform 0.3s ease-out;
+        transform-origin: 50% 100%; /* rotate around the base of the arrow */
+      }
+
       body {
         margin: 0;
         padding-top: 70px;
@@ -70,9 +81,13 @@
   <body>
     <div class="topbar">
       <img src="images/wayfairer_logo1.png" class="logo" alt="Logo">
-      <div id="wind-display">
-        Loading wind...
-      </div>
+     // <div id="wind-display">
+      //  Loading wind...
+     // </div>
+    <div id="wind-display">
+      <div id="wind-arrow" aria-hidden="true"></div>
+      <span id="wind-text">Loading wind...</span>
+    </div>
     </div>
     <div>
       <h1>Wayfairer</h1>
@@ -84,6 +99,8 @@
 
   async function fetchWind() {
     const windDisplay = document.getElementById("wind-display");
+    const windText = document.getElementById("wind-text");
+    const windArrow = document.getElementById("wind-arrow");
 
     try {
       const proxy = "https://api.allorigins.win/raw?url=";
@@ -100,7 +117,7 @@
 
       if (lines.length < 3) {
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windText.innerText = "Wind data unavailable";
         }
         return;
       }
@@ -115,7 +132,7 @@
 
       if (!firstValidLine) {
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windText.innerText = "Wind data unavailable";
         }
         return;
       }
@@ -126,17 +143,27 @@
 
       if (isNaN(windDir) || windSpeed === "MM") {
         if (!hasValidWind) {
-          windDisplay.innerText = "Wind data unavailable";
+          windText.innerText = "Wind data unavailable";
         }
         return;
       }
 
       hasValidWind = true;
       windDisplay.innerText = `Wind: ${windSpeed} kt @ ${windDir}°`;
+
+      const arrowDegrees = (windDir + 180) % 360;
+      if (windArrow) {
+        windArrow.style.transform = `rotate(${arrowDegrees}deg)`;
+      }
+      
     } catch (e) {
       console.error("Error fetching wind:", e);
       if (!hasValidWind) {
-        windDisplay.innerText = "Wind data unavailable";
+        if (windText) {
+          windText.innerText = "Wind data unavailable";
+        } else {
+          windDisplay.innerText = "Wind data unavailable";
+        }
       }
     }
   }
